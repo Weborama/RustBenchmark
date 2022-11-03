@@ -1,0 +1,221 @@
+services:
+  rust-demo:
+    build:
+      context: rust
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 500M
+    ports:
+      - "8080:8080"
+    links:
+      - postgres
+      - rabbitmq
+    environment:
+      DEMO_POSTGRES: postgres://rust:rust@postgres/rust
+      DEMO_RABBITMQ: amqp://guest:guest@rabbitmq:5672/%2f
+      RUST_LOG: "off"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+  java-demo:
+    build:
+      context: java-spring
+    ports:
+      - "8081:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 500M
+    links:
+      - postgres
+      - rabbitmq
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres/rust
+      SPRING_DATASOURCE_USERNAME: rust
+      SPRING_DATASOURCE_PASSWORD: rust
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+  python-demo:
+    build:
+      context: python
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 500M
+    links:
+      - postgres
+      - rabbitmq
+    environment:
+      DEMO_POSTGRES: postgres://rust:rust@postgres/rust
+      DEMO_RABBITMQ: amqp://guest:guest@rabbitmq:5672/%2f
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+  groovy-demo:
+    build:
+      context: groovy
+    ports:
+      - "8082:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 500M
+    links:
+      - postgres
+      - rabbitmq
+    environment:
+      DEMO_POSTGRES: jdbc:postgresql://postgres/rust?user=rust&password=rust
+      DEMO_RABBITMQ: amqp://guest:guest@rabbitmq:5672/%2f
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+  reactive-demo:
+    build:
+      context: java-spring-reactive
+    ports:
+      - "8083:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 500M
+    links:
+      - rabbitmq
+      - postgres
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres/rust
+      SPRING_DATASOURCE_USERNAME: rust
+      SPRING_DATASOURCE_PASSWORD: rust
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+  clojure-demo:
+    build:
+      context: clojure
+    ports:
+      - "8084:3000"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 500M
+    links:
+      - postgres
+      - rabbitmq
+    environment:
+      JDBC_URL: jdbc:postgresql://postgres/rust?user=rust&password=rust
+      RMQ_HOST: rabbitmq
+      TIMBRE_LEVEL: ":warn"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+  go-demo:
+    build:
+      context: go
+    ports:
+      - "8085:3000"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 500M
+    links:
+      - postgres
+      - rabbitmq
+    environment:
+      SQL_DRIVERNAME: postgres
+      SQL_DATASOURCENAME: postgres://postgres/rust?user=rust&password=rust&sslmode=disable
+      SQL_CONNMAXIDLETIME: 0
+      SQL_CONNMAXLIFETIME: 0
+      SQL_MAXIDLECONNS: 64
+      SQL_MAXOPENCONNS: 0
+      AMQP_URI: amqp://guest:guest@rabbitmq:5672/
+      AMQP_BATCHERTIMEOUT: 5s
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+  postgres:
+    image: postgres:alpine
+    environment:
+      POSTGRES_DB: rust
+      POSTGRES_USER: rust
+      POSTGRES_PASSWORD: rust
+      PGDATA: /data/postgres
+    volumes:
+      - database:/data/postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U rust" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 500M
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    ports:
+      - "8090:15672" # Expose Web UI
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1Gi
+  rmq-init:
+    image: curlimages/curl:7.84.0
+    links:
+      - rabbitmq
+    command: >
+      sh -c "curl -i -u guest:guest --header 'Content-type: application/json' --request PUT http://rabbitmq:15672/api/queues/%2F/toRustDemo --data-raw '{\"auto_delete\": false,\"durable\": true,\"arguments\": {}}' \ && curl -i -u guest:guest --header 'Content-type: application/json' --request PUT http://rabbitmq:15672/api/exchanges/%2F/toRustDemo --data-raw '{\"type\":\"direct\",\"durable\":true}' \ && curl -i -u guest:guest --header 'Content-type: application/json' --request POST http://rabbitmq:15672/api/bindings/%2F/e/toRustDemo/q/toRustDemo --data-raw '{\"routing_key\":\"rust\",\"durable\":true}'"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+  migration:
+    image: clux/diesel-cli
+    command: diesel migration run
+    volumes:
+      - "$PWD/rust:/volume"
+    links:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://rust:rust@postgres/rust
+    working_dir: /volume
+    depends_on:
+      postgres:
+        condition: service_healthy
+volumes:
+  database: {}

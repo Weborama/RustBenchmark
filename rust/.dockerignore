@@ -1,0 +1,12 @@
+.git/
+.idea/
+migrations/
+target/
+.env
+.gitlab-ci.yml
+.gitignore
+.gitconfig
+Dockerfile
+docker-compose.yml
+README.md
+LICENSE

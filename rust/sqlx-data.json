@@ -1,0 +1,23 @@
+{
+  "db": "PostgreSQL",
+  "df99020749df3d2f12734854997027106a9a36b1ec987a185305231e0be90a74": {
+    "describe": {
+      "columns": [
+        {
+          "name": "name",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "SELECT name FROM clients WHERE id = $1"
+  }
+}

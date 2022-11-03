@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.weborama.demo.groovy</groupId>
+  <artifactId>groovy-demo</artifactId>
+  <version>0.1</version>
+
+  <properties>
+    <groovy.version>4.0.4</groovy.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.groovy</groupId>
+      <artifactId>groovy</artifactId>
+      <version>${groovy.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.groovy</groupId>
+      <artifactId>groovy-sql</artifactId>
+      <version>${groovy.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.groovy</groupId>
+      <artifactId>groovy-json</artifactId>
+      <version>${groovy.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.tambapps.http</groupId>
+      <artifactId>garcon</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.rabbitmq</groupId>
+      <artifactId>amqp-client</artifactId>
+      <version>5.15.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.alphazero</groupId>
+      <artifactId>Blake2b</artifactId>
+      <version>bbf094983c</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.gmavenplus</groupId>
+        <artifactId>gmavenplus-plugin</artifactId>
+        <version>1.13.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>addSources</goal>
+              <goal>generateStubs</goal>
+              <goal>compile</goal>
+              <goal>removeStubs</goal>
+              <goal>addTestSources</goal>
+              <goal>generateTestStubs</goal>
+              <goal>compileTests</goal>
+              <goal>removeTestStubs</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <configScript>${project.basedir}/compiler-config.groovy</configScript>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.4.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>com.weborama.demo.groovy.Script</mainClass>
+            </manifest>
+          </archive>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id> <!-- this is used for inheritance merges -->
+            <phase>package</phase> <!-- bind to the packaging phase -->
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+      <id>scijava</id>
+      <name>SciJava Public Repository</name>
+      <url>https://maven.scijava.org/content/repositories/public/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+</project>

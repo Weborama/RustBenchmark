@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    password: rust
+    username: rust
+    url: jdbc:postgresql://localhost/rust
+  r2dbc:
+    password: rust
+    username: rust
+    url: r2dbc:postgresql://localhost/rust
+  rabbitmq:
+    host: localhost
+    username: guest
+    password: guest
+server:
+  shutdown: graceful

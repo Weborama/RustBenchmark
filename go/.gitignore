@@ -1,0 +1,14 @@
+# Ignore binaries defined in cmd
+/daemon
+# Ignore coverage files
+.coverage.*
+# Ignore hidden markdown files (uses these for notes etc. i.e. .NOTES.md, .README.md etc.)
+.*.md
+# Ignore CI and release build directory
+/build
+/builds
+# Ignore others
+.env
+.cache
+.vscode
+.idea
